@@ -6,10 +6,16 @@ def restore_table(table_name, restore_time, target_table_name):
     Restores a DynamoDB table to a specified time
     """
     dynamodb_client = boto3.client('dynamodb')
+    table_properties = dynamodb_client.describe_table(TableName=table_name)['Table']
+    
+    # Check if the table is using on-demand billing mode
+    billing_mode = table_properties.get('BillingModeSummary', {}).get('BillingMode', 'PAY_PER_REQUEST')
+    
     response = dynamodb_client.restore_table_to_point_in_time(
         SourceTableName=table_name,
         TargetTableName=target_table_name,
-        RestoreDateTime=restore_time
+        RestoreDateTime=restore_time,
+        BillingModeOverride=billing_mode
     )
     click.echo('Restore request initiated for the table.')
 
